@@ -1,0 +1,394 @@
+{
+  "name": "Búsqueda de puestos laborales",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 11,
+              "triggerAtMinute": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -768,
+        -112
+      ],
+      "id": "90fdb1f1-37b9-4958-ae4c-8ffb42aa21f6",
+      "name": "Schedule Trigger",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        272,
+        -240
+      ],
+      "id": "0aa0dac5-2966-4340-b21d-04e937ee5612",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "ofertas_unificadas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -208
+      ],
+      "id": "2969fa22-5d5f-464f-bbba-bdabac1bac3f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "bloque_oferta_ticjob",
+              "cssSelector": ".job-card",
+              "returnValue": "html",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        -384
+      ],
+      "id": "8a281c85-5218-49c1-8e57-6d0578375007",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "url": "https://ticjob.es/esp/busqueda",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -288,
+        -384
+      ],
+      "id": "06345256-1e05-491e-ad0a-fcface42e57c",
+      "name": "TicJob"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "bloque_oferta_tecnoempleo",
+              "cssSelector": ".p-3.border.rounded.mb-3.bg-white",
+              "returnValue": "html",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        -192
+      ],
+      "id": "592a25c6-9093-4118-84ef-d1d6810bb405",
+      "name": "HTML2"
+    },
+    {
+      "parameters": {
+        "url": "https://jsearch.p.rapidapi.com/search-v2",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "Desarrollar Full Stack en Madrid"
+            },
+            {
+              "name": "num_pages",
+              "value": "1"
+            },
+            {
+              "name": "country",
+              "value": "es"
+            },
+            {
+              "name": "date_posted",
+              "value": "week"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-rapidapi-key",
+              "value": "e39334b6b9mshb17c2ab875a274ap1d1ed7jsn0007e2bdbbd7"
+            },
+            {
+              "name": "x-rapidapi-host",
+              "value": "jsearch.p.rapidapi.com"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        16
+      ],
+      "id": "49251e8c-32c4-4a7a-b186-14ba3300626e",
+      "name": "Indeed1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.tecnoempleo.com/ofertas-trabajo/?en_remoto=,1,&te=Desarrollo+Web&pr=,263,&co=,1,&forma_minima=,6,&es=,27,34,&du=,1,",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -272,
+        -192
+      ],
+      "id": "18feada0-00ae-48b2-ad76-e7ea158585d8",
+      "name": "TecnoEmpleo"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-lite",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-lite"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Eres mi asistente personal de reclutamiento IT. \nA continuación, te proporciono datos extraídos de varios portales de empleo:\n\nDATOS EXTRAÍDOS:\n{{ JSON.stringify($json.ofertas_unificadas) }}\n\nTU TAREA:\nAnaliza la información de los datos proporcionados y extrae de cada oferta real: el Título del puesto, la Empresa, y el Enlace directo.\nFiltra las ofertas y quédate con aquellas relacionadas con desarrollo web (Full Stack, Frontend, Backend) perfil Junior o Mid. Descarta ofertas Senior.\nMaqueta el resultado como el cuerpo de un correo electrónico usando código HTML limpio y moderno. Haz que el título sea un enlace <a> clicable hacia la oferta original. Y muestramelas separadas por portal \n\n\nREGLA ESTRICTA 1: Eres un redactor HTML, no un programador. Devuelve ÚNICAMENTE código HTML estático. NO devuelvas funciones JavaScript.\nREGLA ESTRICTA 2: NO uses datos inventados. Si hay datos en DATOS EXTRAÍDOS, úsalos. Si no, devuelve un HTML diciendo \"No hay ofertas\"."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        816,
+        -208
+      ],
+      "id": "1f7223f3-3d3e-4a02-8478-95ffb4af74a4",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GzNsoNKu7itVXWza",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "maximilianosuarez384@gmail.com",
+        "subject": "Ofertas de empleo",
+        "message": "={{ $json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        -208
+      ],
+      "id": "430d7d7a-da62-439e-8035-2abd5c97fa44",
+      "name": "Send a message",
+      "webhookId": "ab02a399-5425-4a9f-93a7-50ac972a4360",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "jhEr2QdHRdlp61UK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1a2c0f25-0526-4c7a-9ba1-4af98f37c99a",
+              "name": "bloque_oferta_indeed",
+              "value": "={{ $json.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        -16
+      ],
+      "id": "142926a8-7d0f-4d08-9b53-3b45ed7d3362",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "TicJob",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "TecnoEmpleo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Indeed1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TicJob": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Indeed1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TecnoEmpleo": {
+      "main": [
+        [
+          {
+            "node": "HTML2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d34a1e1d-adab-4ed8-81d4-a4f6d3af1673",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f82300e88c0450f98d419f68a80f712b5b654e0f02bd89735c5c4da12a1c890"
+  },
+  "nodeGroups": [],
+  "id": "e1tyEKz4JxwFAWMS",
+  "tags": []
+}
