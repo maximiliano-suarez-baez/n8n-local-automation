@@ -52,7 +52,7 @@ Este entorno ha sido diseñado bajo principios de portabilidad estricta. Para re
 
 1. **Clonar el proyecto:**
    ```bash
-   git clone [https://github.com/maximiliano-suarez-baez/n8n-job-search.git](https://github.com/maximiliano-suarez-baez/n8n-job-search.git)
+   git clone [https://github.com/maximiliano-suarez-baez/n8n-job-search.git](https://github.com/maximiliano-suarez-baez/n8n-local-automation)
    cd n8n-job-search
    ```
 
